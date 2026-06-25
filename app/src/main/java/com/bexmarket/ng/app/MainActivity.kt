@@ -12,6 +12,8 @@ import android.webkit.WebViewClient
 import android.widget.RelativeLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +27,11 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize Google Mobile Ads SDK
         MobileAds.initialize(this) {}
+        
+        // Load Ad
+        val mAdView: AdView = findViewById(R.id.adView)
+        val adRequest = AdRequest.Builder().build()
+        mAdView.loadAd(adRequest)
 
         val myWebView: WebView = findViewById(R.id.webview)
         val splashLayout: RelativeLayout = findViewById(R.id.customSplashLayout)
