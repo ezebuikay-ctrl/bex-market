@@ -96,16 +96,11 @@ class MainActivity : AppCompatActivity() {
 
                 uploadMessage = filePathCallback
 
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "image/*"
-
+                val intent = fileChooserParams?.createIntent()
                 try {
-                    startActivityForResult(
-                        Intent.createChooser(intent, "File Chooser"),
-                        FILECHOOSER_RESULTCODE
-                    )
+                    startActivityForResult(intent!!, FILECHOOSER_RESULTCODE)
                 } catch (e: Exception) {
+                    uploadMessage?.onReceiveValue(null)
                     uploadMessage = null
                     return false
                 }
