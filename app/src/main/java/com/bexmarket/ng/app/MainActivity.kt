@@ -46,6 +46,16 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 // Ensure splash screen is hidden when the page finishes loading
                 splashLayout.visibility = View.GONE
+
+                // Inject CSS to fix layout shifting and enforce stationary grid
+                val css = "html, body { width: 100% !important; max-width: 100vw !important; margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; } " +
+                        ".main-grid-container { width: 100vw !important; min-width: 100vw !important; } " +
+                        ".side-menu { position: fixed !important; z-index: 1000 !important; } " +
+                        ".navbar { position: fixed !important; width: 100vw !important; z-index: 1001 !important; } " +
+                        ".post-product-button { position: fixed !important; z-index: 1002 !important; }"
+                
+                val js = "var style = document.createElement('style'); style.innerHTML = '$css'; document.head.appendChild(style);"
+                view?.evaluateJavascript(js, null)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
