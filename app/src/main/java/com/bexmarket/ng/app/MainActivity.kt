@@ -36,6 +36,11 @@ class MainActivity : AppCompatActivity() {
         settings.domStorageEnabled = true
         settings.allowFileAccess = true
         settings.allowContentAccess = true
+        settings.loadWithOverviewMode = true
+        settings.useWideViewPort = true
+        settings.setSupportZoom(false)
+        settings.builtInZoomControls = false
+        settings.displayZoomControls = false
 
         // Append custom string to User Agent to identify the app
         val defaultUserAgent = settings.userAgentString
@@ -47,11 +52,12 @@ class MainActivity : AppCompatActivity() {
                 // Ensure splash screen is hidden when the page finishes loading
                 splashLayout.visibility = View.GONE
 
-                // Inject CSS to fix layout shifting and enforce stationary grid
-                val css = "html, body { width: 100% !important; max-width: 100vw !important; margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; } " +
-                        ".main-grid-container { width: 100vw !important; min-width: 100vw !important; } " +
-                        ".side-menu { position: fixed !important; z-index: 1000 !important; } " +
-                        ".navbar { position: fixed !important; width: 100vw !important; z-index: 1001 !important; } " +
+                // Inject CSS to fix layout shifting and ensure stationary grid
+                val css = "html, body { width: 100% !important; max-width: 100vw !important; margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; } " +
+                        "#page-wrapper, .page-wrapper { overflow-x: hidden !important; width: 100% !important; } " +
+                        ".main-grid-container { width: 100vw !important; min-width: 100vw !important; pointer-events: auto !important; } " +
+                        ".side-menu, .navbar { position: fixed !important; pointer-events: none !important; z-index: 1000 !important; } " +
+                        ".side-menu *, .navbar *, .post-product-button { pointer-events: auto !important; } " +
                         ".post-product-button { position: fixed !important; z-index: 1002 !important; }"
                 
                 val js = "var style = document.createElement('style'); style.innerHTML = '$css'; document.head.appendChild(style);"
