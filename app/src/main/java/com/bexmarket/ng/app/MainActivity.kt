@@ -34,13 +34,20 @@ class MainActivity : AppCompatActivity() {
         val settings = myWebView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
+        settings.databaseEnabled = true
         settings.allowFileAccess = true
         settings.allowContentAccess = true
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
-        settings.setSupportZoom(false)
+        settings.setSupportZoom(true)
         settings.builtInZoomControls = false
         settings.displayZoomControls = false
+
+        // Smoothness and Performance
+        myWebView.isVerticalScrollBarEnabled = false
+        myWebView.isHorizontalScrollBarEnabled = false
+        myWebView.overScrollMode = View.OVER_SCROLL_NEVER
+        myWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
         // Append custom string to User Agent to identify the app
         val defaultUserAgent = settings.userAgentString
@@ -53,12 +60,9 @@ class MainActivity : AppCompatActivity() {
                 splashLayout.visibility = View.GONE
 
                 // Inject CSS to fix layout shifting and ensure stationary grid
-                val css = "html, body { width: 100% !important; max-width: 100vw !important; margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; } " +
-                        "#page-wrapper, .page-wrapper { overflow-x: hidden !important; width: 100% !important; } " +
-                        ".main-grid-container { width: 100vw !important; min-width: 100vw !important; pointer-events: auto !important; } " +
-                        ".side-menu, .navbar { position: fixed !important; pointer-events: none !important; z-index: 1000 !important; } " +
-                        ".side-menu *, .navbar *, .post-product-button { pointer-events: auto !important; } " +
-                        ".post-product-button { position: fixed !important; z-index: 1002 !important; }"
+                val css = "html, body { width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; } " +
+                        ".main-grid-container { width: 100vw !important; max-width: 100vw !important; } " +
+                        ".side-menu, .navbar { position: fixed !important; z-index: 9999 !important; }"
                 
                 val js = "var style = document.createElement('style'); style.innerHTML = '$css'; document.head.appendChild(style);"
                 view?.evaluateJavascript(js, null)
