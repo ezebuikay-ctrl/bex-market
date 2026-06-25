@@ -34,20 +34,24 @@ class MainActivity : AppCompatActivity() {
         val settings = myWebView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
-        settings.databaseEnabled = true
         settings.allowFileAccess = true
         settings.allowContentAccess = true
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
-        settings.setSupportZoom(true)
+        settings.setSupportZoom(false)
         settings.builtInZoomControls = false
         settings.displayZoomControls = false
-
-        // Smoothness and Performance
+        settings.cacheMode = android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK
+        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        
+        // Advanced Smoothness Settings
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            myWebView.settings.offscreenPreRaster = true
+        }
         myWebView.isVerticalScrollBarEnabled = false
         myWebView.isHorizontalScrollBarEnabled = false
         myWebView.overScrollMode = View.OVER_SCROLL_NEVER
-        myWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        myWebView.isHapticFeedbackEnabled = false
 
         // Append custom string to User Agent to identify the app
         val defaultUserAgent = settings.userAgentString
@@ -59,10 +63,11 @@ class MainActivity : AppCompatActivity() {
                 // Ensure splash screen is hidden when the page finishes loading
                 splashLayout.visibility = View.GONE
 
-                // Inject CSS to fix layout shifting and ensure stationary grid
-                val css = "html, body { width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; } " +
-                        ".main-grid-container { width: 100vw !important; max-width: 100vw !important; } " +
-                        ".side-menu, .navbar { position: fixed !important; z-index: 9999 !important; }"
+                // Inject CSS for Native-like responsiveness
+                val css = "html, body { width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; scroll-behavior: auto !important; } " +
+                        ".main-grid-container { width: 100vw !important; max-width: 100vw !important; will-change: transform !important; } " +
+                        ".side-menu, .navbar { position: fixed !important; z-index: 9999 !important; will-change: transform !important; } " +
+                        "* { -webkit-tap-highlight-color: transparent !important; }"
                 
                 val js = "var style = document.createElement('style'); style.innerHTML = '$css'; document.head.appendChild(style);"
                 view?.evaluateJavascript(js, null)
