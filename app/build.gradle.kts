@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    // alias(libs.plugins.google.services) // Disabled until google-services.json is added
 }
 
 android {
@@ -34,6 +35,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.play.services.ads)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)

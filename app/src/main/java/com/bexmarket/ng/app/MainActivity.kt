@@ -1,10 +1,7 @@
 package com.bexmarket.ng.app
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.webkit.ValueCallback
@@ -13,20 +10,21 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.RelativeLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.MobileAds
 
 class MainActivity : AppCompatActivity() {
 
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
     private val FILECHOOSER_RESULTCODE = 1
-    private val PERMISSION_REQUEST_CODE = 100
-    private var pendingFileChooserParams: WebChromeClient.FileChooserParams? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Initialize Google Mobile Ads SDK
+        MobileAds.initialize(this) {}
 
         val myWebView: WebView = findViewById(R.id.webview)
         val splashLayout: RelativeLayout = findViewById(R.id.customSplashLayout)
@@ -36,22 +34,6 @@ class MainActivity : AppCompatActivity() {
         settings.domStorageEnabled = true
         settings.allowFileAccess = true
         settings.allowContentAccess = true
-        settings.loadWithOverviewMode = true
-        settings.useWideViewPort = true
-        settings.setSupportZoom(false)
-        settings.builtInZoomControls = false
-        settings.displayZoomControls = false
-        settings.cacheMode = android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK
-        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        
-        // Advanced Smoothness Settings
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            myWebView.settings.offscreenPreRaster = true
-        }
-        myWebView.isVerticalScrollBarEnabled = false
-        myWebView.isHorizontalScrollBarEnabled = false
-        myWebView.overScrollMode = View.OVER_SCROLL_NEVER
-        myWebView.isHapticFeedbackEnabled = false
 
         // Append custom string to User Agent to identify the app
         val defaultUserAgent = settings.userAgentString
@@ -62,15 +44,6 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 // Ensure splash screen is hidden when the page finishes loading
                 splashLayout.visibility = View.GONE
-
-                // Inject CSS for Native-like responsiveness
-                val css = "html, body { width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; scroll-behavior: auto !important; } " +
-                        ".main-grid-container { width: 100vw !important; max-width: 100vw !important; will-change: transform !important; } " +
-                        ".side-menu, .navbar { position: fixed !important; z-index: 9999 !important; will-change: transform !important; } " +
-                        "* { -webkit-tap-highlight-color: transparent !important; }"
-                
-                val js = "var style = document.createElement('style'); style.innerHTML = '$css'; document.head.appendChild(style);"
-                view?.evaluateJavascript(js, null)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -127,12 +100,19 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 uploadMessage = filePathCallback
-                pendingFileChooserParams = fileChooserParams
 
-                if (checkStoragePermission()) {
-                    openFileChooser()
-                } else {
-                    requestStoragePermission()
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.type = "image/*"
+
+                try {
+                    startActivityForResult(
+                        Intent.createChooser(intent, "File Chooser"),
+                        FILECHOOSER_RESULTCODE
+                    )
+                } catch (e: Exception) {
+                    uploadMessage = null
+                    return false
                 }
 
                 return true
@@ -145,45 +125,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             myWebView.restoreState(savedInstanceState)
         }
-    }
 
-    private fun checkStoragePermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-        } else {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    private fun requestStoragePermission() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-        ActivityCompat.requestPermissions(this, arrayOf(permission), PERMISSION_REQUEST_CODE)
-    }
-
-    private fun openFileChooser() {
-        val intent = pendingFileChooserParams?.createIntent()
-        try {
-            startActivityForResult(intent!!, FILECHOOSER_RESULTCODE)
-        } catch (e: Exception) {
-            uploadMessage?.onReceiveValue(null)
-            uploadMessage = null
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openFileChooser()
-            } else {
-                uploadMessage?.onReceiveValue(null)
-                uploadMessage = null
+        // Handle back button behavior for WebView
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (myWebView.canGoBack()) {
+                    myWebView.goBack()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
             }
-        }
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -218,7 +171,7 @@ class MainActivity : AppCompatActivity() {
 
         myWebView.let {
             it.onResume()
-            
+
             val currentUrl = it.url
             if (currentUrl == null || currentUrl.isEmpty() || currentUrl == "about:blank") {
                 if (it.canGoBack()) {
