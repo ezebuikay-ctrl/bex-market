@@ -1,7 +1,10 @@
 package com.bexmarket.ng.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.webkit.ValueCallback
@@ -11,11 +14,15 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
     private val FILECHOOSER_RESULTCODE = 1
+    private val PERMISSION_REQUEST_CODE = 100
+    private var pendingFileChooserParams: WebChromeClient.FileChooserParams? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,14 +102,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 uploadMessage = filePathCallback
+                pendingFileChooserParams = fileChooserParams
 
-                val intent = fileChooserParams?.createIntent()
-                try {
-                    startActivityForResult(intent!!, FILECHOOSER_RESULTCODE)
-                } catch (e: Exception) {
-                    uploadMessage?.onReceiveValue(null)
-                    uploadMessage = null
-                    return false
+                if (checkStoragePermission()) {
+                    openFileChooser()
+                } else {
+                    requestStoragePermission()
                 }
 
                 return true
@@ -114,6 +119,45 @@ class MainActivity : AppCompatActivity() {
             myWebView.loadUrl("https://bexmarket-ng.vercel.app")
         } else {
             myWebView.restoreState(savedInstanceState)
+        }
+    }
+
+    private fun checkStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun requestStoragePermission() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        ActivityCompat.requestPermissions(this, arrayOf(permission), PERMISSION_REQUEST_CODE)
+    }
+
+    private fun openFileChooser() {
+        val intent = pendingFileChooserParams?.createIntent()
+        try {
+            startActivityForResult(intent!!, FILECHOOSER_RESULTCODE)
+        } catch (e: Exception) {
+            uploadMessage?.onReceiveValue(null)
+            uploadMessage = null
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openFileChooser()
+            } else {
+                uploadMessage?.onReceiveValue(null)
+                uploadMessage = null
+            }
         }
     }
 
