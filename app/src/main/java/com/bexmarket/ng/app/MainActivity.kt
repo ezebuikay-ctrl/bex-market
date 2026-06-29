@@ -1,192 +1,67 @@
 package com.bexmarket.ng.app
 
-import android.content.Intent
-import android.net.Uri
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.RelativeLayout
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-    private var uploadMessage: ValueCallback<Array<Uri>>? = null
-    private val FILECHOOSER_RESULTCODE = 1
+    private lateinit var webView: WebView
+    private lateinit var splashLayout: View
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize Google Mobile Ads SDK
+        // Initialize Ads
         MobileAds.initialize(this) {}
-        
-        // Load Ad
-        val mAdView: AdView = findViewById(R.id.adView)
+        val adView: AdView = findViewById(R.id.adView)
         val adRequest = AdRequest.Builder().build()
-        mAdView.loadAd(adRequest)
+        adView.loadAd(adRequest)
 
-        val myWebView: WebView = findViewById(R.id.webview)
-        val splashLayout: RelativeLayout = findViewById(R.id.customSplashLayout)
+        // Initialize WebView
+        webView = findViewById(R.id.webview)
+        splashLayout = findViewById(R.id.customSplashLayout)
 
-        val settings = myWebView.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.allowFileAccess = true
-        settings.allowContentAccess = true
+        webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
+        
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                splashLayout.visibility = View.VISIBLE
+            }
 
-        // Append custom string to User Agent to identify the app
-        val defaultUserAgent = settings.userAgentString
-        settings.userAgentString = "$defaultUserAgent BexMarketApp"
-
-        myWebView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // Ensure splash screen is hidden when the page finishes loading
                 splashLayout.visibility = View.GONE
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val url = request?.url.toString()
-
-                // 1. Handle WhatsApp links
-                if (url.startsWith("whatsapp://")) {
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        view?.context?.startActivity(intent)
-                        return true
-                    } catch (_: Exception) {
-                        // WhatsApp not installed or error handling
-                        return false
-                    }
-                }
-
-                // 2. Traffic Controller: Detect ad-redirects and special schemes
-                if (url.startsWith("intent://") || url.startsWith("market://")) {
-                    try {
-                        val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-                        view?.context?.startActivity(intent)
-                        return true // Successfully handled, do NOT load in WebView
-                    } catch (_: Exception) {
-                        return false // If the intent fails, fall back to default
-                    }
-                }
-
-                // 3. Whitelist: Only load our domain inside the WebView
-                if (url.contains("bexmarket-ng.vercel.app")) {
-                    return false // Load in WebView
-                }
-
-                // 4. External Links/Ads: Open in system browser
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    view?.context?.startActivity(intent)
-                    return true
-                } catch (_: Exception) {
-                    return false
-                }
+                return false
             }
         }
 
-        myWebView.webChromeClient = object : WebChromeClient() {
-            override fun onShowFileChooser(
-                webView: WebView?,
-                filePathCallback: ValueCallback<Array<Uri>>?,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-                if (uploadMessage != null) {
-                    uploadMessage?.onReceiveValue(null)
-                    uploadMessage = null
-                }
-
-                uploadMessage = filePathCallback
-
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "image/*"
-
-                try {
-                    startActivityForResult(
-                        Intent.createChooser(intent, "File Chooser"),
-                        FILECHOOSER_RESULTCODE
-                    )
-                } catch (e: Exception) {
-                    uploadMessage = null
-                    return false
-                }
-
-                return true
-            }
-        }
-
-        // Load the website at the end of onCreate
-        if (savedInstanceState == null) {
-            myWebView.loadUrl("https://bexmarket-ng.vercel.app")
-        } else {
-            myWebView.restoreState(savedInstanceState)
-        }
-
-        // Handle back button behavior for WebView
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+        webView.loadUrl("https://bexmarket-ng.vercel.app/")
+        
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (myWebView.canGoBack()) {
-                    myWebView.goBack()
+                if (webView.canGoBack()) {
+                    webView.goBack()
                 } else {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
                 }
             }
         })
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == FILECHOOSER_RESULTCODE) {
-            if (uploadMessage == null) return
-            uploadMessage?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
-            uploadMessage = null
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        val myWebView: WebView? = findViewById(R.id.webview)
-        myWebView?.saveState(outState)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        val myWebView: WebView? = findViewById(R.id.webview)
-        myWebView?.restoreState(savedInstanceState)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val myWebView: WebView? = findViewById(R.id.webview)
-        
-        if (myWebView == null) {
-            recreate()
-            return
-        }
-
-        myWebView.let {
-            it.onResume()
-
-            val currentUrl = it.url
-            if (currentUrl == null || currentUrl.isEmpty() || currentUrl == "about:blank") {
-                if (it.canGoBack()) {
-                    it.reload()
-                } else {
-                    it.loadUrl("https://bexmarket-ng.vercel.app")
-                }
-            }
-        }
     }
 }
