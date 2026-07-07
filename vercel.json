@@ -1,23 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "source": "/assets/:path*",
-      "destination": "/assets/:path*"
-    },
-    {
-      "source": "/products/:path*",
-      "destination": "/products/:path*"
-    },
-    {
-      "source": "/videos/:path*",
-      "destination": "/videos/:path*"
-    },
-    {
-      "source": "/((?!api|assets|products|videos).*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
