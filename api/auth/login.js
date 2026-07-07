@@ -11,10 +11,12 @@ const pool = new Pool({
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  console.log('Login request body:', JSON.stringify(req.body));
 
   const { email, password } = req.body;
 
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ user, token });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Login error details:', err);
     res.status(500).json({ error: 'Internal Server Error', message: err.message });
   }
 }
