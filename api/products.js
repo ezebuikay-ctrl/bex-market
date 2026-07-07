@@ -23,6 +23,18 @@ export default async function handler(req, res) {
   try {
     const client = await pool.connect();
 
+    // Create products table if not exists
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        price TEXT NOT NULL,
+        description TEXT,
+        "imageUrl" TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Check if table exists and query it
     const result = await client.query('SELECT * FROM products ORDER BY id ASC');
     const products = result.rows;
