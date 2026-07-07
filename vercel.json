@@ -1,12 +1,9 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
-    }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/products/(.*)", "dest": "/products/$1" },
+    { "src": "/videos/(.*)", "dest": "/videos/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
