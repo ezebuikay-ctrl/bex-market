@@ -48,12 +48,22 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.coil.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-    implementation(libs.coil.compose)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
