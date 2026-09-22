@@ -1,0 +1,84 @@
+{
+  "project_info": {
+    "project_number": "423084231588",
+    "project_id": "https-bexmarket-ng-vercel-app",
+    "storage_bucket": "https-bexmarket-ng-vercel-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423084231588:android:dd1867835dd5e2fedf8f31",
+        "android_client_info": {
+          "package_name": "Com.bexmarket.ng.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "423084231588-7shi510q8j8u5u3pt2ar78hmdr1jtf3o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "Com.bexmarket.ng.app",
+            "certificate_hash": "28fa6d1e029a52e3b357f3462b5828c116dd8704"
+          }
+        },
+        {
+          "client_id": "423084231588-9h01gib2k0478h66frtu1se5nk34mkva.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6uCRb6pig_coMdy0VEdqSYfeXmNP9Yf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "423084231588-9h01gib2k0478h66frtu1se5nk34mkva.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423084231588:android:326ccf98c86fad35df8f31",
+        "android_client_info": {
+          "package_name": "bexmarket.ng"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "423084231588-lrh7j22lubmflr032kgklecuq0g0rdi8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "bexmarket.ng",
+            "certificate_hash": "28fa6d1e029a52e3b357f3462b5828c116dd8704"
+          }
+        },
+        {
+          "client_id": "423084231588-9h01gib2k0478h66frtu1se5nk34mkva.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6uCRb6pig_coMdy0VEdqSYfeXmNP9Yf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "423084231588-9h01gib2k0478h66frtu1se5nk34mkva.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
